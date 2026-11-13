@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MIN_PASSWORD_LENGTH, useAuth } from './AuthContext';
 import { RECOVERY_QUESTION } from './storage';
+import LanguageCountrySelector from './LanguageCountrySelector';
 import { Alert, Field, Section, btnPrimary, inputCls } from './ui';
 
 function useSubmit(action) {
@@ -32,7 +33,7 @@ function ProfileForm() {
 
   return (
     <form onSubmit={run} className="space-y-3">
-      <h3 className="font-semibold text-emerald-900">الاسم الظاهر</h3>
+      <h3 className="font-semibold text-sky-900">الاسم الظاهر</h3>
       {error && <Alert>{error}</Alert>}
       {done && <Alert kind="success">تم حفظ الاسم.</Alert>}
       <Field label="اسم ولي الأمر" htmlFor="set-name">
@@ -61,13 +62,13 @@ function RecoveryForm() {
       }
       className="space-y-3"
     >
-      <h3 className="font-semibold text-emerald-900">سؤال الاسترداد</h3>
-      <p className="text-sm text-emerald-900/70">
+      <h3 className="font-semibold text-sky-900">سؤال الاسترداد</h3>
+      <p className="text-sm text-sky-900/70">
         {currentUser.hasRecoveryAnswer ? 'الإجابة محفوظة. يمكنك تغييرها هنا.' : 'لم تُحدَّد إجابة بعد.'}
       </p>
       {error && <Alert>{error}</Alert>}
       {done && <Alert kind="success">تم حفظ إجابة الاسترداد.</Alert>}
-      <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+      <div className="rounded-xl bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">
         {RECOVERY_QUESTION}
       </div>
       <Field label="الإجابة" htmlFor="set-answer">
@@ -121,7 +122,7 @@ function PasswordForm() {
 
   return (
     <form onSubmit={submit} className="space-y-3">
-      <h3 className="font-semibold text-emerald-900">تغيير كلمة المرور</h3>
+      <h3 className="font-semibold text-sky-900">تغيير كلمة المرور</h3>
       {(mismatch || error) && <Alert>{mismatch || error}</Alert>}
       {done && <Alert kind="success">تم تغيير كلمة المرور.</Alert>}
       {[
@@ -156,7 +157,12 @@ function PasswordForm() {
 export default function SettingsSection() {
   return (
     <Section id="settings" title="الإعدادات">
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="mb-8">
+        <h3 className="mb-3 font-semibold text-sky-900">تغيير اللغة والبلد</h3>
+        <LanguageCountrySelector />
+      </div>
+
+      <div className="grid gap-8 lg:grid-cols-3 border-t border-sky-100 pt-6">
         <ProfileForm />
         <RecoveryForm />
         <PasswordForm />

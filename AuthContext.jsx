@@ -10,7 +10,7 @@ import {
   loadSession,
   normalizeAnswer,
   uid,
-} from './storage'
+} from './storage';
 
 export const MIN_PASSWORD_LENGTH = 8;
 const RESET_TTL_MS = 10 * 60 * 1000;
@@ -21,7 +21,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(() => loadSession());
-  const resetRef = useRef(null); // { token, expires } — kept in memory only
+  const resetRef = useRef(null);
 
   const syncUser = () => setCurrentUser(publicUser(db.getParent()));
 
@@ -39,13 +39,29 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const loginChild = useCallback(async (username, password, remember = true) => {
+    const fail = { ok: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
+    try {
+      const kids = db.getChildren ? db.getChildren() : [];
+      const child = kids.find(
+        (k) => k.username && k.username.toLowerCase() === username.trim().toLowerCase()
+      );
+      if (!child) return fail;
+      if (!(await bcrypt.compare(password, child.passwordHash))) return fail;
+      saveSession(child.id, remember);
+      setCurrentUser({ ...publicUser(child), role: 'child' });
+      return { ok: true };
+    } catch {
+      return fail;
+    }
+  }, []);
+
   const logout = useCallback(() => {
     clearSession();
     resetRef.current = null;
     setCurrentUser(null);
   }, []);
 
-  // Verifies email + recovery answer. On success returns a short-lived reset token.
   const forgotPassword = useCallback(async (email, answer) => {
     const generic = { ok: false, error: 'البريد الإلكتروني أو الإجابة غير صحيحة' };
     try {
@@ -67,8 +83,6 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Reset flow: changePassword({ newPassword, resetToken })
-  // Logged-in flow: changePassword({ newPassword, currentPassword })
   const changePassword = useCallback(
     async ({ newPassword, currentPassword, resetToken }) => {
       if (!newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
@@ -131,13 +145,23 @@ export function AuthProvider({ children }) {
       isAuthenticated: !!currentUser,
       role: currentUser?.role ?? null,
       login,
+      loginChild,
       logout,
       forgotPassword,
       changePassword,
       setRecoveryAnswer,
       updateProfile,
     }),
-    [currentUser, login, logout, forgotPassword, changePassword, setRecoveryAnswer, updateProfile]
+    [
+      currentUser,
+      login,
+      loginChild,
+      logout,
+      forgotPassword,
+      changePassword,
+      setRecoveryAnswer,
+      updateProfile,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
