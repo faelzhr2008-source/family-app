@@ -1,13 +1,13 @@
-import { useAuth } from '../context/AuthContext';
-import { useFamilyData } from '../hooks/useFamilyData';
-import { Alert } from '../components/ui';
-import StatCards from '../components/admin/StatCards';
-import ChildrenSection from '../components/admin/ChildrenSection';
-import TasksSection from '../components/admin/TasksSection';
-import EvidenceSection from '../components/admin/EvidenceSection';
-import LeaderboardSection from '../components/admin/LeaderboardSection';
-import LogsSection from '../components/admin/LogsSection';
-import SettingsSection from '../components/admin/SettingsSection';
+import { useAuth } from './AuthContext';
+import { useFamilyData } from './useFamilyData';
+import { Alert } from './ui';
+import StatCards from './StatCards';
+import ChildrenSection from './ChildrenSection';
+import TasksSection from './TasksSection';
+import EvidenceSection from './EvidenceSection';
+import LeaderboardSection from './LeaderboardSection';
+import LogsSection from './LogsSection';
+import SettingsSection from './SettingsSection';
 
 export default function Admin() {
   const { currentUser } = useAuth();

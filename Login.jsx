@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import AuthShell from '../components/AuthShell';
-import { Alert, Field, btnPrimary, inputCls } from '../components/ui';
+import { useAuth } from './AuthContext';
+import AuthShell from './AuthShell';
+import { Alert, Field, btnPrimary, inputCls } from './ui';
 
 export default function Login() {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
@@ -14,6 +14,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) return <Navigate to="/admin" replace />;
+
+  // التحقق مما إذا كان الحساب لا يزال يستخدم البيانات الافتراضية
+  const isDefaultAccount = user?.usingDefaultPassword !== false;
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -30,12 +33,31 @@ export default function Login() {
     const res = await login(email, password, remember);
     setLoading(false);
     if (!res.ok) setError(res.error);
-    // On success isAuthenticated flips to true and we redirect to /admin above.
   };
 
   return (
     <AuthShell title="لوحة العائلة" subtitle="سجّل الدخول لإدارة الأطفال والمهام">
       <form onSubmit={onSubmit} noValidate className="space-y-5">
+        {isDefaultAccount && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-sm text-emerald-900 space-y-2.5">
+            <div className="text-right" dir="rtl">
+              <p className="font-bold text-emerald-800 mb-1">💡 للمستخدمين الجدد (الدخول الأول):</p>
+              <p>البريد: <span className="font-mono font-semibold" dir="ltr">parent@family.local</span></p>
+              <p>كلمة المرور: <span className="font-mono font-semibold" dir="ltr">12345678</span></p>
+              <p className="mt-1 text-xs text-emerald-700">يمكنك تغييرها لبياناتك الخاصة من الإعدادات بعد الدخول.</p>
+            </div>
+
+            <hr className="border-emerald-200/80" />
+
+            <div className="text-left" dir="ltr">
+              <p className="font-bold text-emerald-800 mb-1">💡 First-Time Login:</p>
+              <p>Email: <span className="font-mono font-semibold">parent@family.local</span></p>
+              <p>Password: <span className="font-mono font-semibold">12345678</span></p>
+              <p className="mt-1 text-xs text-emerald-700">You can change these credentials in Settings after logging in.</p>
+            </div>
+          </div>
+        )}
+
         {error && <Alert>{error}</Alert>}
 
         <Field label="البريد الإلكتروني" htmlFor="email">

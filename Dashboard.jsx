@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useFamilyData } from '../hooks/useFamilyData';
-import { btnPrimary } from '../components/ui';
-import StatCards from '../components/admin/StatCards';
-import LeaderboardSection from '../components/admin/LeaderboardSection';
+import { useAuth } from './AuthContext';
+import { useFamilyData } from './useFamilyData';
+import { btnPrimary } from './ui';
+import StatCards from './StatCards';
+import LeaderboardSection from './LeaderboardSection';
 
 export default function Dashboard() {
   const { currentUser } = useAuth();

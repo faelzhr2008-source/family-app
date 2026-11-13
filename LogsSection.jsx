@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, EmptyState, Field, Section, btnPrimary, inputCls } from '../ui';
+import { Alert, EmptyState, Field, Section, btnPrimary, inputCls } from './ui';
 
 const TYPE_META = {
   approval: { label: 'مراجعة مهمة', cls: 'bg-emerald-100 text-emerald-800' },

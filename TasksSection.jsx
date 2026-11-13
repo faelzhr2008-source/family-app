@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { fileToDataUrl } from '../../utils/image';
+import { fileToDataUrl } from "./image";
+
 import {
   Alert,
   EmptyState,
@@ -11,7 +12,7 @@ import {
   btnSecondary,
   btnSmall,
   inputCls,
-} from '../ui';
+} from './ui';
 
 export const STATUS_META = {
   pending: { label: 'بانتظار التنفيذ', cls: 'bg-amber-100 text-amber-800' },

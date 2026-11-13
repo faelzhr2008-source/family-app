@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+
 import bcrypt from 'bcryptjs';
 import {
   initStorage,
@@ -9,7 +10,7 @@ import {
   loadSession,
   normalizeAnswer,
   uid,
-} from '../utils/storage';
+} from './storage'
 
 export const MIN_PASSWORD_LENGTH = 8;
 const RESET_TTL_MS = 10 * 60 * 1000;

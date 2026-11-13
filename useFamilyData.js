@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import bcrypt from 'bcryptjs';
-import { db, uid } from '../utils/storage';
+import { db, uid } from './storage';
 
 const monthOf = (value) => {
   const d = new Date(value);
@@ -85,6 +85,8 @@ export function useFamilyData() {
             username: form.username.trim(),
             passwordHash,
             points: 0,
+            avatar: form.avatar || '🦁',
+photo: form.photo || '',
             createdAt: new Date().toISOString(),
           },
         ],
@@ -107,6 +109,8 @@ export function useFamilyData() {
                 name: form.name.trim(),
                 age: Number(form.age),
                 username: form.username.trim(),
+                avatar: form.avatar || '🦁',
+photo: form.photo || '',
                 ...(passwordHash ? { passwordHash } : {}),
               }
             : c

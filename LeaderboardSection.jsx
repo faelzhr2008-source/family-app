@@ -1,4 +1,4 @@
-import { EmptyState, Section } from '../ui';
+import { EmptyState, Section } from './ui';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { MIN_PASSWORD_LENGTH, useAuth } from '../../context/AuthContext';
-import { RECOVERY_QUESTION } from '../../utils/storage';
-import { Alert, Field, Section, btnPrimary, inputCls } from '../ui';
+import { MIN_PASSWORD_LENGTH, useAuth } from './AuthContext';
+import { RECOVERY_QUESTION } from './storage';
+import { Alert, Field, Section, btnPrimary, inputCls } from './ui';
 
 function useSubmit(action) {
   const [error, setError] = useState('');

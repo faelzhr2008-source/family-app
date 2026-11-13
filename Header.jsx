@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from './AuthContext';
 
 const linkCls = ({ isActive }) =>
   `rounded-lg px-3 py-1.5 text-sm font-medium transition ${

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, EmptyState, Section, btnDanger, btnPrimary } from '../ui';
+import { Alert, EmptyState, Section, btnDanger, btnPrimary } from './ui';
 
 export default function EvidenceSection({ tasks, kids, onApprove, onReject }) {
   const [error, setError] = useState('');

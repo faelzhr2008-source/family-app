@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MIN_PASSWORD_LENGTH, useAuth } from '../context/AuthContext';
-import { RECOVERY_QUESTION } from '../utils/storage';
-import AuthShell from '../components/AuthShell';
-import { Alert, Field, btnPrimary, btnSecondary, inputCls } from '../components/ui';
+import { MIN_PASSWORD_LENGTH, useAuth } from './AuthContext';
+import { RECOVERY_QUESTION } from './storage';
+import AuthShell from './AuthShell';
+import { Alert, Field, btnPrimary, btnSecondary, inputCls } from './ui';
 
 export default function ForgotPassword() {
   const { forgotPassword, changePassword } = useAuth();

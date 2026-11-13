@@ -1,5 +1,142 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Tajawal", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Tajawal", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* لوحة ألوان عائلية مشرقة وحيوية */
+  --color-emerald-50: #f0f9ff;
+  --color-emerald-100: #e0f2fe;
+  --color-emerald-200: #bae6fd;
+  --color-emerald-300: #7dd3fc;
+  --color-emerald-400: #38bdf8;
+  --color-emerald-500: #0284c7;
+  --color-emerald-600: #0369a1;
+  --color-emerald-700: #075985;
+  --color-emerald-800: #0c4a6e;
+  --color-emerald-900: #082f49;
+  --color-emerald-950: #041d2e;
+}
+
+/* حركة تدرج الألوان الناعمة في الخلفية */
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* حركة طفو النجوم والأشكال المرحة للأعلى والأسفل */
+@keyframes floatShapes {
+  0% { background-position: 0px 0px, 40px 60px; }
+  100% { background-position: 160px -320px, -120px -240px; }
+}
+
+body {
+  background: linear-gradient(-45deg, #e0f2fe, #fef3c7, #fce7f3, #dcfce7) !important;
+  background-size: 400% 400% !important;
+  animation: gradientFlow 15s ease infinite !important;
+  color: #0c4a6e;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* طبقة النجوم والفقاعات المتحركة فوق الخلفية */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://w3.org fill='none' fill-rule='evenodd'%3E%3Cpath d='M35 20l3 6 6.5 1-4.7 4.5 1.1 6.5-5.9-3.1-5.9 3.1 1.1-6.5-4.7-4.5 6.5-1z' fill='%23f59e0b' fill-opacity='0.28'/%3E%3Ccircle cx='120' cy='45' r='7' fill='%230ea5e9' fill-opacity='0.22'/%3E%3Cpath d='M110 120l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z' fill='%23ec4899' fill-opacity='0.24'/%3E%3Ccircle cx='45' cy='115' r='5' fill='%2310b981' fill-opacity='0.25'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://w3.org fill='none' fill-rule='evenodd'%3E%3Ccircle cx='60' cy='60' r='9' stroke='%238b5cf6' stroke-width='2' stroke-opacity='0.18'/%3E%3Cpath d='M25 85l2 4 4.5.7-3.2 3.1.8 4.5-4.1-2.1-4.1 2.1.8-4.5-3.2-3.1 4.5-.7z' fill='%233b82f6' fill-opacity='0.2'/%3E%3C/g%3E%3C/svg%3E");
+  animation: floatShapes 22s linear infinite;
+}
+
+/* التأكد من أن محتوى التطبيق يظهر فوق الخلفية المتحركة بوضوح */
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+#root > div, .min-h-screen {
+  background-color: transparent !important;
+}
+
+/* الشريط العلوي المتدرج */
+header {
+  background: linear-gradient(90deg, #0284c7 0%, #2563eb 50%, #7c3aed 100%) !important;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25) !important;
+}
+
+/* تلوين بطاقات الإحصائيات بألوان مختلفة وممتعة */
+.grid > div:nth-child(1) {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(224,242,254,0.95) 100%) !important;
+  border: 2px solid #7dd3fc !important;
+}
+.grid > div:nth-child(2) {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(254,243,199,0.95) 100%) !important;
+  border: 2px solid #fcd34d !important;
+}
+.grid > div:nth-child(3) {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(220,252,231,0.95) 100%) !important;
+  border: 2px solid #86efac !important;
+}
+.grid > div:nth-child(4) {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(252,231,243,0.95) 100%) !important;
+  border: 2px solid #f9a8d4 !important;
+}
+.grid > div:nth-child(5) {
+  background: linear-gradient(135deg, rgba(255,251,235,0.95) 0%, rgba(255,237,213,0.95) 100%) !important;
+  border: 2px solid #fdba74 !important;
+}
+
+/* حركات تفاعلية ناعمة للبطاقات والأزرار */
+.grid > div, button, a {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease !important;
+}
+
+.grid > div:hover {
+  transform: translateY(-5px) scale(1.015);
+  box-shadow: 0 14px 28px -8px rgba(14, 165, 233, 0.28) !important;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+@keyframes floatItem {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-28px) rotate(12deg) scale(1.12);
+  }
+}
+
+@keyframes blobMove {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(40px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.95);
+  }
+}
+
+.animate-float-item {
+  animation: floatItem 12s ease-in-out infinite;
+}
+
+.animate-blob {
+  animation: blobMove 14s infinite ease-in-out;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
