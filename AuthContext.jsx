@@ -3,6 +3,7 @@ import React, { createContext, useCallback, useContext, useMemo, useRef, useStat
 import bcrypt from 'bcryptjs';
 import {
   initStorage,
+  pullFromCloud,
   db,
   publicUser,
   saveSession,
@@ -28,6 +29,7 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password, remember = true) => {
     const fail = { ok: false, error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' };
     try {
+      await pullFromCloud();
       const parent = db.getParent();
       if (!parent || parent.email.toLowerCase() !== email.trim().toLowerCase()) return fail;
       if (!(await bcrypt.compare(password, parent.passwordHash))) return fail;
@@ -42,6 +44,7 @@ export function AuthProvider({ children }) {
   const loginChild = useCallback(async (username, password, remember = true) => {
     const fail = { ok: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
     try {
+      await pullFromCloud();
       const kids = db.getChildren ? db.getChildren() : [];
       const child = kids.find(
         (k) => k.username && k.username.toLowerCase() === username.trim().toLowerCase()
@@ -65,6 +68,7 @@ export function AuthProvider({ children }) {
   const forgotPassword = useCallback(async (email, answer) => {
     const generic = { ok: false, error: 'البريد الإلكتروني أو الإجابة غير صحيحة' };
     try {
+      await pullFromCloud();
       const parent = db.getParent();
       if (!parent || parent.email.toLowerCase() !== email.trim().toLowerCase()) return generic;
       if (!parent.recoveryAnswerHash) {
