@@ -1,22 +1,20 @@
 {
+  "id": "/",
   "name": "لوحة العائلة - Family App",
   "short_name": "لوحة العائلة",
   "description": "تطبيق ذكي لإدارة مهام الأطفال وتحفيزهم",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f0f9ff",
   "theme_color": "#0284c7",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://githubusercontent.com",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://githubusercontent.com",
+      "src": "/icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
