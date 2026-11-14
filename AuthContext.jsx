@@ -4,6 +4,9 @@ import bcrypt from 'bcryptjs';
 import {
   initStorage,
   pullFromCloud,
+  pushToCloud,
+  setActiveFamilyId,
+  RECOVERY_QUESTION,
   db,
   publicUser,
   saveSession,
@@ -26,13 +29,62 @@ export function AuthProvider({ children }) {
 
   const syncUser = () => setCurrentUser(publicUser(db.getParent()));
 
+  // إنشاء حساب عائلة جديد مستقل في السحابة
+  const registerParent = useCallback(async ({ name, email, password, recoveryAnswer }) => {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!name || !name.trim()) return { ok: false, error: 'أدخل اسم ولي الأمر أو العائلة' };
+    if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) return { ok: false, error: 'أدخل بريداً إلكترونياً صحيحاً' };
+    if (!password || password.length < MIN_PASSWORD_LENGTH) {
+      return { ok: false, error: `كلمة المرور يجب ألا تقل عن ${MIN_PASSWORD_LENGTH} أحرف` };
+    }
+
+    try {
+      // التحقق من عدم وجود حساب مسبق بنفس البريد
+      const exists = await pullFromCloud(cleanEmail);
+      if (exists) {
+        return { ok: false, error: 'هذا البريد الإلكتروني مسجّل بالفعل، يمكنك تسجيل الدخول به مباشرة' };
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+      const normAns = normalizeAnswer(recoveryAnswer || '');
+      const recoveryAnswerHash = normAns.length >= 2 ? await bcrypt.hash(normAns, 10) : null;
+
+      const newParent = {
+        id: uid(),
+        name: name.trim(),
+        email: cleanEmail,
+        passwordHash,
+        usingDefaultPassword: false,
+        recoveryQuestion: RECOVERY_QUESTION,
+        recoveryAnswerHash,
+        role: 'parent',
+      };
+
+      setActiveFamilyId(cleanEmail);
+      localStorage.setItem('fam_parent', JSON.stringify(newParent));
+      localStorage.setItem('fam_children', JSON.stringify([]));
+      localStorage.setItem('fam_tasks', JSON.stringify([]));
+      localStorage.setItem('fam_submissions', JSON.stringify([]));
+      localStorage.setItem('fam_logs', JSON.stringify([]));
+
+      await pushToCloud(cleanEmail);
+      saveSession(newParent.id, true);
+      setCurrentUser(publicUser(newParent));
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'تعذّر إنشاء الحساب، تأكد من اتصالك بالإنترنت' };
+    }
+  }, []);
+
   const login = useCallback(async (email, password, remember = true) => {
     const fail = { ok: false, error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' };
     try {
-      await pullFromCloud();
+      const cleanEmail = email.trim().toLowerCase();
+      await pullFromCloud(cleanEmail);
       const parent = db.getParent();
-      if (!parent || parent.email.toLowerCase() !== email.trim().toLowerCase()) return fail;
+      if (!parent || parent.email.toLowerCase() !== cleanEmail) return fail;
       if (!(await bcrypt.compare(password, parent.passwordHash))) return fail;
+      setActiveFamilyId(cleanEmail);
       saveSession(parent.id, remember);
       setCurrentUser(publicUser(parent));
       return { ok: true };
@@ -41,16 +93,20 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const loginChild = useCallback(async (username, password, remember = true) => {
-    const fail = { ok: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
+  const loginChild = useCallback(async (familyEmail, username, password, remember = true) => {
+    const fail = { ok: false, error: 'بيانات الدخول غير صحيحة، تأكد من بريد العائلة واسم المستخدم وكلمة المرور' };
     try {
-      await pullFromCloud();
+      const cleanEmail = (familyEmail || '').trim().toLowerCase();
+      if (cleanEmail) {
+        await pullFromCloud(cleanEmail);
+      }
       const kids = db.getChildren ? db.getChildren() : [];
       const child = kids.find(
         (k) => k.username && k.username.toLowerCase() === username.trim().toLowerCase()
       );
       if (!child) return fail;
       if (!(await bcrypt.compare(password, child.passwordHash))) return fail;
+      if (cleanEmail) setActiveFamilyId(cleanEmail);
       saveSession(child.id, remember);
       setCurrentUser({ ...publicUser(child), role: 'child' });
       return { ok: true };
@@ -68,9 +124,10 @@ export function AuthProvider({ children }) {
   const forgotPassword = useCallback(async (email, answer) => {
     const generic = { ok: false, error: 'البريد الإلكتروني أو الإجابة غير صحيحة' };
     try {
-      await pullFromCloud();
+      const cleanEmail = email.trim().toLowerCase();
+      await pullFromCloud(cleanEmail);
       const parent = db.getParent();
-      if (!parent || parent.email.toLowerCase() !== email.trim().toLowerCase()) return generic;
+      if (!parent || parent.email.toLowerCase() !== cleanEmail) return generic;
       if (!parent.recoveryAnswerHash) {
         return {
           ok: false,
@@ -148,6 +205,7 @@ export function AuthProvider({ children }) {
       currentUser,
       isAuthenticated: !!currentUser,
       role: currentUser?.role ?? null,
+      registerParent,
       login,
       loginChild,
       logout,
@@ -158,6 +216,7 @@ export function AuthProvider({ children }) {
     }),
     [
       currentUser,
+      registerParent,
       login,
       loginChild,
       logout,
