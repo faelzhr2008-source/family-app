@@ -29,7 +29,6 @@ export function AuthProvider({ children }) {
 
   const syncUser = () => setCurrentUser(publicUser(db.getParent()));
 
-  // إنشاء حساب عائلة جديد مستقل في السحابة
   const registerParent = useCallback(async ({ name, email, password, recoveryAnswer }) => {
     const cleanEmail = (email || '').trim().toLowerCase();
     if (!name || !name.trim()) return { ok: false, error: 'أدخل اسم ولي الأمر أو العائلة' };
@@ -39,7 +38,6 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      // التحقق من عدم وجود حساب مسبق بنفس البريد
       const exists = await pullFromCloud(cleanEmail);
       if (exists) {
         return { ok: false, error: 'هذا البريد الإلكتروني مسجّل بالفعل، يمكنك تسجيل الدخول به مباشرة' };
