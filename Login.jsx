@@ -8,7 +8,7 @@ import { Alert, Field, btnPrimary, inputCls } from './ui';
 
 export default function Login() {
   const { isAuthenticated, role, login, loginChild, registerParent } = useAuth();
-  const [mode, setMode] = useState('parent'); // 'parent' | 'register' | 'child'
+  const [mode, setMode] = useState('parent');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [familyEmail, setFamilyEmail] = useState('');
@@ -76,7 +76,6 @@ export default function Login() {
     >
       <LanguageCountrySelector compact />
 
-      {/* أزرار التبديل: دخول ولي الأمر / عائلة جديدة / دخول الطفل */}
       <div className="mb-6 grid grid-cols-3 gap-1.5 rounded-2xl bg-sky-100/80 p-1.5 border border-sky-200">
         <button
           type="button"
