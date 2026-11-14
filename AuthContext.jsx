@@ -92,24 +92,41 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loginChild = useCallback(async (familyEmail, username, password, remember = true) => {
-    const fail = { ok: false, error: 'بيانات الدخول غير صحيحة، تأكد من بريد العائلة واسم المستخدم وكلمة المرور' };
     try {
       const cleanEmail = (familyEmail || '').trim().toLowerCase();
       if (cleanEmail) {
-        await pullFromCloud(cleanEmail);
+        const found = await pullFromCloud(cleanEmail);
+        if (!found) {
+          return { ok: false, error: 'لم يتم العثور على عائلة بهذا البريد الإلكتروني، تأكد من كتابة بريد ولي الأمر الصحيح' };
+        }
       }
       const kids = db.getChildren ? db.getChildren() : [];
       const child = kids.find(
-        (k) => k.username && k.username.toLowerCase() === username.trim().toLowerCase()
+        (k) => k.username && k.username.trim().toLowerCase() === username.trim().toLowerCase()
       );
-      if (!child) return fail;
-      if (!(await bcrypt.compare(password, child.passwordHash))) return fail;
+      if (!child) {
+        return { ok: false, error: 'اسم المستخدم للطفل غير موجود في هذه العائلة' };
+      }
+
+      // التحقق من كلمة المرور سواء كانت مشفّرة أو محفوظة كنص مباشر
+      let isMatch = false;
+      if (child.passwordHash) {
+        isMatch = await bcrypt.compare(password, child.passwordHash);
+      }
+      if (!isMatch && child.password) {
+        isMatch = child.password === password;
+      }
+
+      if (!isMatch) {
+        return { ok: false, error: 'كلمة مرور الطفل غير صحيحة' };
+      }
+
       if (cleanEmail) setActiveFamilyId(cleanEmail);
       saveSession(child.id, remember);
       setCurrentUser({ ...publicUser(child), role: 'child' });
       return { ok: true };
     } catch {
-      return fail;
+      return { ok: false, error: 'تعذّر الاتصال بالسحابة، تحقق من الإنترنت' };
     }
   }, []);
 
