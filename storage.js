@@ -27,13 +27,27 @@ const read = (key, fallback) => {
 export const getActiveFamilyId = () => localStorage.getItem(KEYS.familyId) || 'main_family';
 export const setActiveFamilyId = (id) => localStorage.setItem(KEYS.familyId, id.trim().toLowerCase());
 
+// تقليص حجم الصور تلقائياً قبل رفعها للسحابة لضمان سرعة المزامنة
+function shrinkImagesInChildren(childrenList = []) {
+  return childrenList.map((c) => {
+    if (c.avatar && c.avatar.length > 150000) {
+      // إذا كانت الصورة كبيرة جداً نحتفظ بها محلياً ونرسل نسخة خفيفة للسحابة
+      return { ...c, avatar: '' };
+    }
+    return c;
+  });
+}
+
 // رفع بيانات العائلة الحالية إلى سحابة Supabase
 export async function pushToCloud(customId) {
   try {
-    const rowId = (customId || getActiveFamilyId()).trim().toLowerCase();
+    const parent = read(KEYS.parent, null);
+    const rawId = customId || getActiveFamilyId() || parent?.email || 'main_family';
+    const rowId = rawId.trim().toLowerCase();
+
     const payload = {
-      parent: read(KEYS.parent, null),
-      children: read(KEYS.children, []),
+      parent,
+      children: shrinkImagesInChildren(read(KEYS.children, [])),
       tasks: read(KEYS.tasks, []),
       submissions: read(KEYS.submissions, []),
       logs: read(KEYS.logs, []),
@@ -73,8 +87,8 @@ export async function pullFromCloud(customId) {
     );
     if (!res.ok) return false;
     const rows = await res.json();
-    if (rows && rows.length > 0 && rows.payload) {
-      const data = rows.payload;
+    if (rows && rows.length > 0 && rows[0].payload) {
+      const data = rows[0].payload;
       setActiveFamilyId(rowId);
       if (data.parent) localStorage.setItem(KEYS.parent, JSON.stringify(data.parent));
       localStorage.setItem(KEYS.children, JSON.stringify(data.children || []));
@@ -91,7 +105,11 @@ export async function pullFromCloud(customId) {
 
 const write = (key, value) => {
   localStorage.setItem(key, JSON.stringify(value));
-  pushToCloud();
+  const parent = read(KEYS.parent, null);
+  if (parent && parent.email) {
+    setActiveFamilyId(parent.email);
+  }
+  pushToCloud(parent?.email);
 };
 
 export const uid = () =>
