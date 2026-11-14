@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.family_app_khaki_theta.twa",
+      "sha256_cert_fingerprints": [
+        "AD:62:C8:46:08:38:2A:31:52:97:0F:0C:87:CC:CB:D7:4A:76:24:95:1C:B4:2F:1F:CD:9E:05:38:E8:CA:AF:87"
+      ]
+    }
+  }
+]
