@@ -1,4 +1,5 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import ProtectedRoute from './ProtectedRoute';
 import Header from './Header';
 import Login from './Login';
@@ -22,12 +23,10 @@ const FLOATING_ITEMS = [
 function AnimatedBackground() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none">
-      {/* دوائر ضوئية ملونة تتحرك بنعومة في الزوايا */}
       <div className="animate-blob absolute -top-20 -left-20 h-80 w-80 rounded-full bg-sky-300/35 blur-3xl" />
       <div className="animate-blob animation-delay-2000 absolute top-1/4 -right-20 h-96 w-96 rounded-full bg-amber-300/35 blur-3xl" />
       <div className="animate-blob animation-delay-4000 absolute -bottom-24 left-1/3 h-96 w-96 rounded-full bg-pink-300/35 blur-3xl" />
 
-      {/* الرموز العائلية والنجوم الطافية */}
       {FLOATING_ITEMS.map((item, idx) => (
         <span
           key={idx}
@@ -57,6 +56,22 @@ function Layout() {
   );
 }
 
+// منع الطفل من دخول صفحة الإدارة وتحويله تلقائياً إلى لوحته
+function ParentOnly({ children }) {
+  const { role } = useAuth();
+  if (role === 'child') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+}
+
+// توجيه المستخدم للصفحة المناسبة لدوره عند فتح التطبيق
+function HomeRedirect() {
+  const { isAuthenticated, role } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <Navigate to={role === 'child' ? '/dashboard' : '/admin'} replace />;
+}
+
 export default function App() {
   return (
     <>
@@ -73,11 +88,18 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/admin" element={<Admin />} />
+            <Route
+              path="/admin"
+              element={
+                <ParentOnly>
+                  <Admin />
+                </ParentOnly>
+              }
+            />
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/admin" replace />} />
+          <Route path="*" element={<HomeRedirect />} />
         </Routes>
       </div>
     </>
