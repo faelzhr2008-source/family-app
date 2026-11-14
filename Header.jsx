@@ -7,7 +7,7 @@ const linkCls = ({ isActive }) =>
   }`;
 
 export default function Header() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, role, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -26,12 +26,20 @@ export default function Header() {
         </div>
 
         <nav className="flex items-center gap-1" aria-label="التنقل الرئيسي">
-          <NavLink to="/admin" className={linkCls}>
-            الإدارة
-          </NavLink>
-          <NavLink to="/dashboard" className={linkCls}>
-            اللوحة
-          </NavLink>
+          {role !== 'child' ? (
+            <>
+              <NavLink to="/admin" className={linkCls}>
+                الإدارة
+              </NavLink>
+              <NavLink to="/dashboard" className={linkCls}>
+                اللوحة
+              </NavLink>
+            </>
+          ) : (
+            <span className="rounded-lg bg-white/15 px-3 py-1.5 text-sm font-bold text-amber-200">
+              لوحة البطل ⭐
+            </span>
+          )}
         </nav>
 
         <div className="ms-auto flex items-center gap-3">
