@@ -2,7 +2,11 @@ import bcrypt from 'bcryptjs';
 
 export const RECOVERY_QUESTION = 'ما اسم أول مدرسة للطفل الأكبر؟';
 
+const SUPABASE_URL = 'https://' + 'dtuckwbvkwcxmzuhvepl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_kJqXlfVxc0--1uS8tAzxog_XJG5y0Lx';
+
 const KEYS = {
+  familyId: 'fam_cloud_id',
   parent: 'fam_parent',
   children: 'fam_children',
   tasks: 'fam_tasks',
@@ -19,14 +23,82 @@ const read = (key, fallback) => {
     return fallback;
   }
 };
-const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+
+export const getActiveFamilyId = () => localStorage.getItem(KEYS.familyId) || 'main_family';
+export const setActiveFamilyId = (id) => localStorage.setItem(KEYS.familyId, id.trim().toLowerCase());
+
+// رفع بيانات العائلة الحالية إلى سحابة Supabase
+export async function pushToCloud(customId) {
+  try {
+    const rowId = (customId || getActiveFamilyId()).trim().toLowerCase();
+    const payload = {
+      parent: read(KEYS.parent, null),
+      children: read(KEYS.children, []),
+      tasks: read(KEYS.tasks, []),
+      submissions: read(KEYS.submissions, []),
+      logs: read(KEYS.logs, []),
+    };
+
+    await fetch(`${SUPABASE_URL}/rest/v1/family_data`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        id: rowId,
+        payload,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  } catch {
+    // استمرار العمل محلياً عند ضعف الشبكة
+  }
+}
+
+// جلب بيانات عائلة محددة من سحابة Supabase
+export async function pullFromCloud(customId) {
+  try {
+    const rowId = (customId || getActiveFamilyId()).trim().toLowerCase();
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/family_data?id=eq.${encodeURIComponent(rowId)}&select=payload`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+      }
+    );
+    if (!res.ok) return false;
+    const rows = await res.json();
+    if (rows && rows.length > 0 && rows.payload) {
+      const data = rows.payload;
+      setActiveFamilyId(rowId);
+      if (data.parent) localStorage.setItem(KEYS.parent, JSON.stringify(data.parent));
+      localStorage.setItem(KEYS.children, JSON.stringify(data.children || []));
+      localStorage.setItem(KEYS.tasks, JSON.stringify(data.tasks || []));
+      localStorage.setItem(KEYS.submissions, JSON.stringify(data.submissions || []));
+      localStorage.setItem(KEYS.logs, JSON.stringify(data.logs || []));
+      return true;
+    }
+  } catch {
+    // تجاهل الخطأ عند عدم توفر اتصال
+  }
+  return false;
+}
+
+const write = (key, value) => {
+  localStorage.setItem(key, JSON.stringify(value));
+  pushToCloud();
+};
 
 export const uid = () =>
   globalThis.crypto?.randomUUID
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-// Normalise Arabic answers: trim, lowercase, strip diacritics, unify alef forms
 export const normalizeAnswer = (s = '') =>
   s
     .trim()
@@ -40,16 +112,22 @@ export const verify = (plain, hashed) => !!hashed && bcrypt.compareSync(plain, h
 
 export function initStorage() {
   if (!read(KEYS.parent, null)) {
-    write(KEYS.parent, {
-      id: 'parent-1',
-      name: 'ولي الأمر',
-      email: 'parent@family.local',
-      passwordHash: hash('12345678'),
-      usingDefaultPassword: true,
-      recoveryQuestion: RECOVERY_QUESTION,
-      recoveryAnswerHash: null,
-      role: 'parent',
-    });
+    localStorage.setItem(
+      KEYS.parent,
+      JSON.stringify({
+        id: 'parent-1',
+        name: 'ولي الأمر',
+        email: 'parent@family.local',
+        passwordHash: hash('12345678'),
+        usingDefaultPassword: true,
+        recoveryQuestion: RECOVERY_QUESTION,
+        recoveryAnswerHash: null,
+        role: 'parent',
+      })
+    );
+  }
+  if (localStorage.getItem(KEYS.familyId)) {
+    pullFromCloud();
   }
 }
 
@@ -57,29 +135,38 @@ export const publicUser = (p) =>
   p && {
     id: p.id,
     name: p.name,
-    email: p.email,
-    role: p.role,
+    email: p.email || '',
+    username: p.username || '',
+    role: p.role || 'parent',
     hasRecoveryAnswer: !!p.recoveryAnswerHash,
     usingDefaultPassword: !!p.usingDefaultPassword,
   };
 
-// Session: localStorage when "remember me", otherwise sessionStorage
 export function saveSession(userId, remember) {
   clearSession();
   const store = remember ? localStorage : sessionStorage;
   store.setItem(KEYS.session, JSON.stringify({ userId, at: Date.now() }));
 }
+
 export function clearSession() {
   localStorage.removeItem(KEYS.session);
   sessionStorage.removeItem(KEYS.session);
 }
+
 export function loadSession() {
   try {
     const raw = localStorage.getItem(KEYS.session) || sessionStorage.getItem(KEYS.session);
     if (!raw) return null;
     const { userId } = JSON.parse(raw);
+
     const parent = read(KEYS.parent, null);
-    return parent && parent.id === userId ? publicUser(parent) : null;
+    if (parent && parent.id === userId) return publicUser(parent);
+
+    const children = read(KEYS.children, []);
+    const child = children.find((c) => c.id === userId);
+    if (child) return publicUser({ ...child, role: 'child' });
+
+    return null;
   } catch {
     return null;
   }
